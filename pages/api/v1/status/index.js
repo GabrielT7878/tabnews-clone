@@ -5,9 +5,11 @@ async function status(request, response) {
   const updateAt = new Date().toISOString();
   const dbVersionResult = await database.query("SHOW server_version;");
   const maxConnectionsResult = await database.query("SHOW max_connections;");
-  const openedConnectionsResult = await database.query(
-    "SELECT count(*)::int FROM pg_stat_activity WHERE datname = 'local_db';",
-  );
+  const openedConnectionsQuery = {
+    text: "SELECT count(*)::int FROM pg_stat_activity WHERE datname = $1;",
+    values: [process.env.POSTGRES_DB],
+  };
+  const openedConnectionsResult = await database.query(openedConnectionsQuery);
 
   const dbVersionValue = dbVersionResult[0].server_version;
   const maxConnectionsValue = maxConnectionsResult[0].max_connections;
